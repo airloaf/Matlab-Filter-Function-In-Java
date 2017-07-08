@@ -23,36 +23,48 @@ z = z(1:n - 1);
 
 ### Here is my implementation in Java
 ```
-public BigDecimal[] filter(BigDecimal[] b, BigDecimal[] a, BigDecimal[] x){
+private int PRECISION = 10;		
+public BigDecimal[] filter(BigDecimal[] b, BigDecimal[] a, BigDecimal[] X){
+	if(a[0] != BigDecimal.ZERO && (a.length >= b.length)){
+	
 		int n = b.length;
-		
 		BigDecimal[] z = new BigDecimal[n];
-		for(int i = 0; i < z.length; i++){
-			z[i] = BigDecimal.ZERO;
-			z[i].setScale(12, BigDecimal.ROUND_HALF_UP);
-		}
-		
-		for(int i = 0; i < b.length; i++){
-			b[i] = b[i].divide(a[0]);
-		}
-		for(int i = 0; i < a.length; i++){
-			a[i] = a[i].divide(a[0]);
-		}
-		
-		BigDecimal[] Y = new BigDecimal[x.length];
-		for(int i = 0; i < Y.length; i++){
-			Y[i] = BigDecimal.ZERO;
-			Y[i].setScale(12, BigDecimal.ROUND_HALF_UP);
-		}
-		
+		fillZeros(z);
+
+		BigDecimal[] Y = new BigDecimal[X.length];
+		fillZeros(Y);
+
+		divideEach(b, a[0]);
+		divideEach(a, a[0]);
+
 		for(int m = 0; m < Y.length; m++){
-			Y[m] = b[0].multiply(x[m]).add(z[0]).setScale(12, BigDecimal.ROUND_HALF_UP);
-         
+			Y[m] = b[0].multiply(X[m]).add(z[0]).setScale(PRECISION, BigDecimal.ROUND_HALF_UP);
+			
 			for(int i= 1; i < n; i++){
-				z[i-1] = b[i].multiply(x[m]).add(z[i]).subtract(a[i].multiply(Y[m])).setScale(12, BigDecimal.ROUND_HALF_UP);	
+				z[i-1] = b[i].multiply(X[m]).add(z[i]).subtract(a[i].multiply(Y[m])).setScale(PRECISION, BigDecimal.ROUND_HALF_UP);
 			}
+
 		}
-		
+
+		BigDecimal[] zC = z.clone();
+		z = new BigDecimal[zC.length-1];
+		for(int i = 0; i < z.length; i++)
+			z[i] = zC[i];
+
 		return Y;
 	}
-   ```
+	return X;
+}
+
+private void divideEach(BigDecimal[] array, BigDecimal divisor){
+	for(int i = 0; i < array.length; i++){
+		array[i] = array[i].divide(divisor).setScale(PRECISION, BigDecimal.ROUND_HALF_UP);
+	}
+}
+
+private void fillZeros(BigDecimal[] array){
+	for(int i = 0; i < array.length; i++){
+		array[i] = BigDecimal.ZERO;
+	}
+}
+```
