@@ -4,44 +4,70 @@ import java.math.BigDecimal;
 
 public class Filter {
 
-	public BigDecimal[] filter(BigDecimal[] b, BigDecimal[] a, BigDecimal[] x){
+	private int PRECISION = 10;
 		
-		int n = b.length;
+	public BigDecimal[] filter(BigDecimal[] b, BigDecimal[] a, BigDecimal[] X){
 		
-		BigDecimal[] z = new BigDecimal[n];
-		for(int i = 0; i < z.length; i++){
-			z[i] = BigDecimal.ZERO;
-			z[i].setScale(12, BigDecimal.ROUND_HALF_UP);
-		}
+		//Checks if these conditions are met otherwise it
+		//will return the original input x
+		if(a[0] != BigDecimal.ZERO && (a.length >= b.length)){
 		
-		for(int i = 0; i < b.length; i++){
-			b[i] = b[i].divide(a[0]);
-		}
-		
-		for(int i = 0; i < a.length; i++){
-			a[i] = a[i].divide(a[0]);
-		}
-		
-		BigDecimal[] Y = new BigDecimal[x.length];
-		for(int i = 0; i < Y.length; i++){
-			Y[i] = BigDecimal.ZERO;
-			Y[i].setScale(12, BigDecimal.ROUND_HALF_UP);
-		}
-		
-		for(int m = 0; m < Y.length; m++){
+			int n = b.length;
 			
-			Y[m] = b[0].multiply(x[m]).add(z[0]).setScale(12, BigDecimal.ROUND_HALF_UP);
+			//Filter delay filled with zeros
+			BigDecimal[] z = new BigDecimal[n];
+			fillZeros(z);
+	
+			//The filtered signal filled with zeros
+			BigDecimal[] Y = new BigDecimal[X.length];
+			fillZeros(Y);
 			
-			for(int i= 1; i < n; i++){
+			//Divide b and a by first coefficient of a
+			divideEach(b, a[0]);
+			divideEach(a, a[0]);
+			
+			for(int m = 0; m < Y.length; m++){
 				
-				z[i-1] = b[i].multiply(x[m]).add(z[i]).subtract(a[i].multiply(Y[m])).setScale(12, BigDecimal.ROUND_HALF_UP);
+				//Calculates the filtered value using
+				//Y[m] = b[0] * X[m] + z[0]
+				Y[m] = b[0].multiply(X[m]).add(z[0]).setScale(PRECISION, BigDecimal.ROUND_HALF_UP);
+				
+				for(int i= 1; i < n; i++){
+					
+					//Previous filter delays recalculated by
+					//z[i-1] = b[i] * X[m] + z[i] - a[i] * Y[m]
+					z[i-1] = b[i].multiply(X[m]).add(z[i]).subtract(a[i].multiply(Y[m])).setScale(PRECISION, BigDecimal.ROUND_HALF_UP);
+					
+				}
 				
 			}
+
+			//Trims the last element off of filter delay
+			BigDecimal[] zC = z.clone();
+			z = new BigDecimal[zC.length-1];
+			for(int i = 0; i < z.length; i++)
+				z[i] = zC[i];
 			
+			//The filtered signal
+			return Y;
 		}
 		
-		return Y;
-		
+		//Returns original signal when conditions not met
+		return X;
+	}
+	
+	//Divides a BigDecimal array by a big decimal
+	private void divideEach(BigDecimal[] array, BigDecimal divisor){
+		for(int i = 0; i < array.length; i++){
+			array[i] = array[i].divide(divisor).setScale(PRECISION, BigDecimal.ROUND_HALF_UP);
+		}
+	}
+	
+	//Fills a big decimal array with zeros
+	private void fillZeros(BigDecimal[] array){
+		for(int i = 0; i < array.length; i++){
+			array[i] = BigDecimal.ZERO;
+		}
 	}
 	
 }
