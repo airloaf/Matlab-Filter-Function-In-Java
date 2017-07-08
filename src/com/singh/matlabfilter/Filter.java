@@ -3,7 +3,6 @@ package com.singh.matlabfilter;
 import java.math.BigDecimal;
 
 public class Filter {
-
 	private int PRECISION = 10;
 		
 	public BigDecimal[] filter(BigDecimal[] b, BigDecimal[] a, BigDecimal[] X){
